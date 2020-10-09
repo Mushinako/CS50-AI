@@ -69,7 +69,7 @@ def main():
     print("Sorting IDs...")
     ids = sorted([id_ for ids_ in names.values() for id_ in ids_], key=int)
     print("IDs sorted.")
-    for i, name_i in enumerate(ids):
+    for i, name_i in enumerate(reversed(ids)):
         for j, name_j in enumerate(ids):
             if i >= j:
                 continue
