@@ -1,7 +1,8 @@
 import csv
 import sys
+from typing import List, Optional, Tuple
 
-from util import Node, StackFrontier, QueueFrontier
+from util import Node, QueueFrontier
 
 # Maps names to a set of corresponding person_ids
 names = {}
@@ -62,38 +63,88 @@ def main():
     load_data(directory)
     print("Data loaded.")
 
-    source = person_id_for_name(input("Name: "))
-    if source is None:
-        sys.exit("Person not found.")
-    target = person_id_for_name(input("Name: "))
-    if target is None:
-        sys.exit("Person not found.")
+    max_pair = ('', '')
+    max_diff = 0
+    max_len = 0
+    print("Sorting IDs...")
+    ids = sorted([id_ for ids_ in names.values() for id_ in ids_], key=int)
+    print("IDs sorted.")
+    for i, name_i in enumerate(ids):
+        for j, name_j in enumerate(ids):
+            if i >= j:
+                continue
+            path = shortest_path(name_i, name_j)
+            if path is None:
+                continue
+            length = len(path)
+            if length < max_len:
+                continue
+            diff = int(name_j) - int(name_i)
+            pair = (name_i, name_j)
+            print(length, diff, pair)
+            if length > max_len:
+                max_len = length
+                max_diff = diff
+                max_pair = pair
+                print("  Length increase")
+                continue
+            if diff <= max_diff:
+                continue
+            max_diff = diff
+            max_pair = pair
+            print("  Diff increase")
+    print("Finished:", max_len, max_diff, max_pair)
 
-    path = shortest_path(source, target)
+    # source = person_id_for_name(input("Name: "))
+    # if source is None:
+    #     sys.exit("Person not found.")
+    # target = person_id_for_name(input("Name: "))
+    # if target is None:
+    #     sys.exit("Person not found.")
 
-    if path is None:
-        print("Not connected.")
-    else:
-        degrees = len(path)
-        print(f"{degrees} degrees of separation.")
-        path = [(None, source)] + path
-        for i in range(degrees):
-            person1 = people[path[i][1]]["name"]
-            person2 = people[path[i + 1][1]]["name"]
-            movie = movies[path[i + 1][0]]["title"]
-            print(f"{i + 1}: {person1} and {person2} starred in {movie}")
+    # path = shortest_path(source, target)
+
+    # if path is None:
+    #     print("Not connected.")
+    # else:
+    #     degrees = len(path)
+    #     print(f"{degrees} degrees of separation.")
+    #     path = [(None, source)] + path
+    #     for i in range(degrees):
+    #         person1 = people[path[i][1]]["name"]
+    #         person2 = people[path[i + 1][1]]["name"]
+    #         movie = movies[path[i + 1][0]]["title"]
+    #         print(f"{i + 1}: {person1} and {person2} starred in {movie}")
 
 
-def shortest_path(source, target):
+def shortest_path(source: str, target: str) -> Optional[List[Tuple[str, str]]]:
     """
     Returns the shortest list of (movie_id, person_id) pairs
     that connect the source to the target.
 
     If no possible path, returns None.
     """
-
-    # TODO
-    raise NotImplementedError
+    # Queue init: Add root node
+    root_node = Node(source, None, None)
+    queue = QueueFrontier()
+    queue.add(root_node)
+    # Set of visited people
+    visited = {source}
+    # Iterate till queue empty
+    while not queue.empty():
+        # Popleft
+        test_node = queue.remove()
+        # Check if target reached and Append non-visited neighbors to queue
+        all_neighbor_ids = neighbors_for_person(test_node.state)
+        for movie_id, person_id in all_neighbor_ids:
+            if person_id == target:
+                return test_node.get_path() + [(movie_id, person_id)]
+            if person_id not in visited:
+                visited.add(person_id)
+                node = Node(person_id, test_node, movie_id)
+                queue.add(node)
+    # Queue exhausted. No solution
+    return None
 
 
 def person_id_for_name(name):
