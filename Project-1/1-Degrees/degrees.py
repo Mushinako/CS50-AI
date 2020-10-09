@@ -63,58 +63,26 @@ def main():
     load_data(directory)
     print("Data loaded.")
 
-    max_pair = ('', '')
-    max_diff = 0
-    max_len = 0
-    print("Sorting IDs...")
-    ids = sorted([id_ for ids_ in names.values() for id_ in ids_], key=int)
-    print("IDs sorted.")
-    for i, name_i in enumerate(reversed(ids)):
-        for j, name_j in enumerate(ids):
-            if i >= j:
-                continue
-            path = shortest_path(name_i, name_j)
-            if path is None:
-                continue
-            length = len(path)
-            if length < max_len:
-                continue
-            diff = int(name_j) - int(name_i)
-            pair = (name_i, name_j)
-            print(length, diff, pair)
-            if length > max_len:
-                max_len = length
-                max_diff = diff
-                max_pair = pair
-                print("  Length increase")
-                continue
-            if diff <= max_diff:
-                continue
-            max_diff = diff
-            max_pair = pair
-            print("  Diff increase")
-    print("Finished:", max_len, max_diff, max_pair)
+    source = person_id_for_name(input("Name: "))
+    if source is None:
+        sys.exit("Person not found.")
+    target = person_id_for_name(input("Name: "))
+    if target is None:
+        sys.exit("Person not found.")
 
-    # source = person_id_for_name(input("Name: "))
-    # if source is None:
-    #     sys.exit("Person not found.")
-    # target = person_id_for_name(input("Name: "))
-    # if target is None:
-    #     sys.exit("Person not found.")
+    path = shortest_path(source, target)
 
-    # path = shortest_path(source, target)
-
-    # if path is None:
-    #     print("Not connected.")
-    # else:
-    #     degrees = len(path)
-    #     print(f"{degrees} degrees of separation.")
-    #     path = [(None, source)] + path
-    #     for i in range(degrees):
-    #         person1 = people[path[i][1]]["name"]
-    #         person2 = people[path[i + 1][1]]["name"]
-    #         movie = movies[path[i + 1][0]]["title"]
-    #         print(f"{i + 1}: {person1} and {person2} starred in {movie}")
+    if path is None:
+        print("Not connected.")
+    else:
+        degrees = len(path)
+        print(f"{degrees} degrees of separation.")
+        path = [(None, source)] + path
+        for i in range(degrees):
+            person1 = people[path[i][1]]["name"]
+            person2 = people[path[i + 1][1]]["name"]
+            movie = movies[path[i + 1][0]]["title"]
+            print(f"{i + 1}: {person1} and {person2} starred in {movie}")
 
 
 def shortest_path(source: str, target: str) -> Optional[List[Tuple[str, str]]]:
