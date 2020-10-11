@@ -1,4 +1,4 @@
-# Minesweeper
+# [Minesweeper](https://cs50.harvard.edu/ai/2020/projects/1/minesweeper/)
 
 Write an AI to play Minesweeper.
 
