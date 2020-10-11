@@ -4,9 +4,9 @@ import time
 
 from minesweeper import Minesweeper, MinesweeperAI
 
-HEIGHT = 8
-WIDTH = 8
-MINES = 8
+HEIGHT = 20
+WIDTH = 30
+MINES = 99
 
 # Colors
 BLACK = (0, 0, 0)
@@ -14,10 +14,11 @@ GRAY = (180, 180, 180)
 WHITE = (255, 255, 255)
 RED = (180, 0, 0)
 GREEN = (0, 180, 0)
+BLUE = (180, 180, 255)
 
 # Create game
 pygame.init()
-size = width, height = 600, 400
+size = width, height = 1280, 720
 screen = pygame.display.set_mode(size)
 
 # Fonts
@@ -28,7 +29,7 @@ largeFont = pygame.font.Font(OPEN_SANS, 40)
 
 # Compute board size
 BOARD_PADDING = 20
-board_width = ((2 / 3) * width) - (BOARD_PADDING * 2)
+board_width = ((5 / 6) * width) - (BOARD_PADDING * 2)
 board_height = height - (BOARD_PADDING * 2)
 cell_size = int(min(board_width / WIDTH, board_height / HEIGHT))
 board_origin = (BOARD_PADDING, BOARD_PADDING)
@@ -48,6 +49,8 @@ revealed = set()
 flags = set()
 safes = set()
 mines = set()
+current = (-1, -1)
+in_game = False
 lost = False
 
 # Show instructions initially
@@ -96,6 +99,7 @@ while True:
         if click == 1:
             mouse = pygame.mouse.get_pos()
             if buttonRect.collidepoint(mouse):
+                in_game = True
                 instructions = False
                 time.sleep(0.3)
 
@@ -118,6 +122,8 @@ while True:
                 pygame.draw.rect(screen, GREEN, rect)
             elif (i, j) in mines:
                 pygame.draw.rect(screen, RED, rect)
+            elif (i, j) == current:
+                pygame.draw.rect(screen, BLUE, rect)
             else:
                 pygame.draw.rect(screen, GRAY, rect)
             pygame.draw.rect(screen, WHITE, rect, 3)
@@ -141,8 +147,8 @@ while True:
 
     # AI Move button
     aiButton = pygame.Rect(
-        (2 / 3) * width + BOARD_PADDING, (1 / 3) * height - 50,
-        (width / 3) - BOARD_PADDING * 2, 50
+        (5 / 6) * width + BOARD_PADDING, (1 / 3) * height - 50,
+        (width / 6) - BOARD_PADDING * 2, 50
     )
     buttonText = mediumFont.render("AI Move", True, BLACK)
     buttonRect = buttonText.get_rect()
@@ -152,8 +158,8 @@ while True:
 
     # Reset button
     resetButton = pygame.Rect(
-        (2 / 3) * width + BOARD_PADDING, (1 / 3) * height + 20,
-        (width / 3) - BOARD_PADDING * 2, 50
+        (5 / 6) * width + BOARD_PADDING, (1 / 3) * height + 20,
+        (width / 6) - BOARD_PADDING * 2, 50
     )
     buttonText = mediumFont.render("Reset", True, BLACK)
     buttonRect = buttonText.get_rect()
@@ -165,7 +171,7 @@ while True:
     text = "Lost" if lost else "Won" if game.mines == flags else ""
     text = mediumFont.render(text, True, WHITE)
     textRect = text.get_rect()
-    textRect.center = ((5 / 6) * width, (2 / 3) * height)
+    textRect.center = ((11 / 12) * width, (2 / 3) * height)
     screen.blit(text, textRect)
 
     move = None
@@ -194,7 +200,10 @@ while True:
                 move = ai.make_random_move()
                 if move is None:
                     flags = ai.mines.copy()
+                    safes = set()
                     mines = set()
+                    current = (-1, -1)
+                    in_game = False
                     print("No moves left to make.")
                 else:
                     print("No known safe moves, AI making random move.")
@@ -208,6 +217,10 @@ while True:
             ai = MinesweeperAI(height=HEIGHT, width=WIDTH)
             revealed = set()
             flags = set()
+            safes = set()
+            mines = set()
+            current = (-1, -1)
+            in_game = True
             lost = False
             continue
 
@@ -220,9 +233,28 @@ while True:
                             and (i, j) not in revealed):
                         move = (i, j)
 
+    elif in_game:
+        move = ai.make_safe_move()
+        if move is None:
+            move = ai.make_random_move()
+            if move is None:
+                flags = ai.mines.copy()
+                safes = set()
+                mines = set()
+                current = (-1, -1)
+                in_game = False
+                print("No moves left to make.")
+            else:
+                print("No known safe moves, AI making random move.")
+        else:
+            print("AI making safe move.")
+        time.sleep(0.2)
+
     # Make move and update AI knowledge
     if move:
+        current = move
         if game.is_mine(move):
+            in_game = False
             lost = True
         else:
             nearby = game.nearby_mines(move)
