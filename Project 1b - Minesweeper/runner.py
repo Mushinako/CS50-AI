@@ -12,6 +12,8 @@ MINES = 8
 BLACK = (0, 0, 0)
 GRAY = (180, 180, 180)
 WHITE = (255, 255, 255)
+RED = (180, 0, 0)
+GREEN = (0, 180, 0)
 
 # Create game
 pygame.init()
@@ -44,6 +46,8 @@ ai = MinesweeperAI(height=HEIGHT, width=WIDTH)
 # Keep track of revealed cells, flagged cells, and if a mine was hit
 revealed = set()
 flags = set()
+safes = set()
+mines = set()
 lost = False
 
 # Show instructions initially
@@ -110,7 +114,12 @@ while True:
                 board_origin[1] + i * cell_size,
                 cell_size, cell_size
             )
-            pygame.draw.rect(screen, GRAY, rect)
+            if (i, j) in safes:
+                pygame.draw.rect(screen, GREEN, rect)
+            elif (i, j) in mines:
+                pygame.draw.rect(screen, RED, rect)
+            else:
+                pygame.draw.rect(screen, GRAY, rect)
             pygame.draw.rect(screen, WHITE, rect, 3)
 
             # Add a mine, flag, or number if needed
@@ -185,6 +194,7 @@ while True:
                 move = ai.make_random_move()
                 if move is None:
                     flags = ai.mines.copy()
+                    mines = set()
                     print("No moves left to make.")
                 else:
                     print("No known safe moves, AI making random move.")
@@ -218,5 +228,7 @@ while True:
             nearby = game.nearby_mines(move)
             revealed.add(move)
             ai.add_knowledge(move, nearby)
+            safes = ai.safes - ai.moves_made
+            mines = ai.mines - ai.moves_made
 
     pygame.display.flip()
