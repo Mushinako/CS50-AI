@@ -340,6 +340,10 @@ def main():
         creator.print(assignment)
         if output:
             creator.save(assignment, output)
+            import subprocess
+            command = ["start", output]
+            process = subprocess.Popen(command, shell=True)
+            process.wait()
 
 
 if __name__ == "__main__":
