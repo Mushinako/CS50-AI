@@ -1,25 +1,28 @@
+from typing import Dict, List, Optional, Set, Tuple
+
+
 class Variable():
 
     ACROSS = "across"
     DOWN = "down"
 
-    def __init__(self, i, j, direction, length):
+    def __init__(self, i: int, j: int, direction: str, length: int) -> None:
         """Create a new variable with starting point, direction, and length."""
         self.i = i
         self.j = j
         self.direction = direction
         self.length = length
-        self.cells = []
+        self.cells: List[Tuple[int, int]] = []
         for k in range(self.length):
             self.cells.append(
                 (self.i + (k if self.direction == Variable.DOWN else 0),
                  self.j + (k if self.direction == Variable.ACROSS else 0))
             )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.i, self.j, self.direction, self.length))
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (
             (self.i == other.i) and
             (self.j == other.j) and
@@ -27,17 +30,17 @@ class Variable():
             (self.length == other.length)
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"({self.i}, {self.j}) {self.direction} : {self.length}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         direction = repr(self.direction)
         return f"Variable({self.i}, {self.j}, {direction}, {self.length})"
 
 
 class Crossword():
 
-    def __init__(self, structure_file, words_file):
+    def __init__(self, structure_file: str, words_file: str) -> None:
 
         # Determine structure of crossword
         with open(structure_file) as f:
@@ -45,9 +48,9 @@ class Crossword():
             self.height = len(contents)
             self.width = max(len(line) for line in contents)
 
-            self.structure = []
+            self.structure: List[List[bool]] = []
             for i in range(self.height):
-                row = []
+                row: List[bool] = []
                 for j in range(self.width):
                     if j >= len(contents[i]):
                         row.append(False)
@@ -62,7 +65,7 @@ class Crossword():
             self.words = set(f.read().upper().splitlines())
 
         # Determine variable set
-        self.variables = set()
+        self.variables: Set[Variable] = set()
         for i in range(self.height):
             for j in range(self.width):
 
@@ -108,7 +111,8 @@ class Crossword():
         # For any pair of variables v1, v2, their overlap is either:
         #    None, if the two variables do not overlap; or
         #    (i, j), where v1's ith character overlaps v2's jth character
-        self.overlaps = dict()
+        self.overlaps: Dict[Tuple[Variable, Variable],
+                            Optional[Tuple[int, int]]] = dict()
         for v1 in self.variables:
             for v2 in self.variables:
                 if v1 == v2:
@@ -125,7 +129,7 @@ class Crossword():
                         cells2.index(intersection)
                     )
 
-    def neighbors(self, var):
+    def neighbors(self, var: Variable) -> Set[Variable]:
         """Given a variable, return set of overlapping variables."""
         return set(
             v for v in self.variables
