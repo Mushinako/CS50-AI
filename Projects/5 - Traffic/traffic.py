@@ -103,11 +103,7 @@ def get_model():
     model.add(tf.keras.layers.MaxPool2D(pool_size=(3, 3)))
     # 36×9×9×3 => 8748 (Flatten)
     model.add(tf.keras.layers.Flatten())
-    # 8748 => 1200 (Linear)
-    model.add(tf.keras.layers.Dense(
-        1200, activation=relu, kernel_regularizer=l2))
-    model.add(tf.keras.layers.Dropout(0.2))
-    # 1200 => 400 (Linear)
+    # 8748 => 400 (Linear)
     model.add(tf.keras.layers.Dense(
         400, activation=relu, kernel_regularizer=l2))
     model.add(tf.keras.layers.Dropout(0.1))
