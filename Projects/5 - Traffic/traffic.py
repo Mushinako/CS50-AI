@@ -73,32 +73,9 @@ def load_data(data_dir: str) -> Tuple[List[np.ndarray], List[int]]:
             labels.append(sign_id)
             # Load image
             img: np.ndarray = cv2.imread(str(sign_img_path))
-            # Check dimensions
-            width, height, channel = img.shape
-            # Each pixel must have 3 channels
-            assert channel == 3
-            # Height too big, crop sides
-            if height > IMG_HEIGHT:
-                start = (height - IMG_HEIGHT) // 2
-                end = start+IMG_HEIGHT
-                img = img[:, start:end, :]
-            # Height too small, pad
-            elif height < IMG_HEIGHT:
-                before = (IMG_HEIGHT - height) // 2
-                after = IMG_HEIGHT - height - before
-                img = np.pad(img, [[0, 0], [before, after], [0, 0]])
-            # Width too big, crop sides
-            if width > IMG_WIDTH:
-                start = (width - IMG_WIDTH) // 2
-                end = start + IMG_WIDTH
-                img = img[start:end, :, :]
-            # Width too small, pad
-            elif width < IMG_WIDTH:
-                before = (IMG_WIDTH - width) // 2
-                after = IMG_WIDTH - width - before
-                img = np.pad(img, [[before, after], [0, 0], [0, 0]])
-            # Check shape
-            assert img.shape == (IMG_WIDTH, IMG_HEIGHT, 3)
+            # Resize
+            img: np.ndarray = cv2.resize(
+                img, (IMG_WIDTH, IMG_HEIGHT), interpolation=cv2.INTER_AREA)
             # Append picture
             images.append(img)
 
@@ -120,21 +97,13 @@ def get_model():
     model = tf.keras.models.Sequential()
     # Input 1×30×30×3
     model.add(tf.keras.Input(shape=(IMG_WIDTH, IMG_HEIGHT, 3)))
-    # 1×30×30×3 => 36×26×26×3 (5×5 Conv2D)
-    model.add(tf.keras.layers.Conv2D(36, (5, 5), activation=relu))
-    # 36×26×26×3 => 36×13×13×3 (2×2 MaxPool2D)
-    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
-    # 36×13×13×3 => 96×10×10×3 (4×4 Conv2D)
-    model.add(tf.keras.layers.Conv2D(96, (4, 4), activation=relu))
-    # 96×10×10×3 => 96×5×5×3 (2×2 MaxPool2D)
-    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
-    # 96×5×5×3 => 7200 (Flatten)
+    # 1×30×30×3 => 36×27×27×3 (4×4 Conv2D)
+    model.add(tf.keras.layers.Conv2D(36, (4, 4), activation=relu))
+    # 36×27×27×3 => 36×9×9×3 (3×3 MaxPool2D)
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(3, 3)))
+    # 36×9×9×3 => 8748 (Flatten)
     model.add(tf.keras.layers.Flatten())
-    # 7200 => 2500 (Linear)
-    model.add(tf.keras.layers.Dense(
-        2500, activation=relu, kernel_regularizer=l2))
-    model.add(tf.keras.layers.Dropout(0.2))
-    # 2500 => 1200 (Linear)
+    # 8748 => 1200 (Linear)
     model.add(tf.keras.layers.Dense(
         1200, activation=relu, kernel_regularizer=l2))
     model.add(tf.keras.layers.Dropout(0.2))
@@ -142,11 +111,7 @@ def get_model():
     model.add(tf.keras.layers.Dense(
         400, activation=relu, kernel_regularizer=l2))
     model.add(tf.keras.layers.Dropout(0.1))
-    # 400 => 160 (Linear)
-    model.add(tf.keras.layers.Dense(
-        160, activation=relu, kernel_regularizer=l2))
-    model.add(tf.keras.layers.Dropout(0.1))
-    # 160 => 43
+    # 400 => 43
     model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation=softmax))
     # Compilation
     model.compile(
