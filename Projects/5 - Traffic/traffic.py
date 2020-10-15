@@ -66,7 +66,6 @@ def load_data(data_dir: str) -> Tuple[List[np.ndarray], List[int]]:
     labels: List[int] = []
 
     for sign_dir_path in data_dir_path.iterdir():
-        print(f"Reading from {sign_dir_path}")
         sign_id = int(sign_dir_path.name)
         for sign_img_path in sign_dir_path.iterdir():
             # Append label
@@ -87,8 +86,6 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    # Common regularizer
-    l2 = tf.keras.regularizers.l2(l2=1e-5)
     # Sequential model initialization
     model = tf.keras.models.Sequential()
     # Input 1×30×30×3
