@@ -93,17 +93,16 @@ def get_model():
     model = tf.keras.models.Sequential()
     # Input 1×30×30×3
     model.add(tf.keras.Input(shape=(IMG_WIDTH, IMG_HEIGHT, 3)))
-    # 1×30×30×3 => 36×28×28×3 (3×3 Conv2D)
-    model.add(tf.keras.layers.Conv2D(36, (3, 3), activation="relu"))
-    # 36×28×28×3 => 36×14×14×3 (2×2 MaxPool2D)
-    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
-    # 36×14×14×3 => 21168 (Flatten)
+    # 1×30×30×3 => 36×27×27×3 (4×4 Conv2D)
+    model.add(tf.keras.layers.Conv2D(36, (4, 4), activation="relu"))
+    # 36×27×27×3 => 36×9×9×3 (3×3 MaxPool2D)
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(3, 3)))
+    # 36×9×9×3 => 8748 (Flatten)
     model.add(tf.keras.layers.Flatten())
-    # 21168 => 200 (Linear)
-    model.add(tf.keras.layers.Dense(
-        160, activation="relu", kernel_regularizer=l2))
-    model.add(tf.keras.layers.Dropout(0.1))
-    # 200 => 43
+    # 8748 => 160 (Linear)
+    model.add(tf.keras.layers.Dense(160, activation="relu"))
+    model.add(tf.keras.layers.Dropout(0.25))
+    # 160 => 43
     model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
     # Compilation
     model.compile(
