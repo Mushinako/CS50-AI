@@ -74,8 +74,7 @@ def load_data(data_dir: str) -> Tuple[List[np.ndarray], List[int]]:
             # Load image
             img: np.ndarray = cv2.imread(str(sign_img_path))
             # Resize
-            img: np.ndarray = cv2.resize(
-                img, (IMG_WIDTH, IMG_HEIGHT), interpolation=cv2.INTER_AREA)
+            img: np.ndarray = cv2.resize(img, (IMG_WIDTH, IMG_HEIGHT))
             # Append picture
             images.append(img)
 
@@ -88,9 +87,6 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    # Common activation functions
-    relu = tf.keras.activations.relu
-    softmax = tf.keras.activations.softmax
     # Common regularizer
     l2 = tf.keras.regularizers.l2(l2=1e-5)
     # Sequential model initialization
@@ -98,20 +94,20 @@ def get_model():
     # Input 1×30×30×3
     model.add(tf.keras.Input(shape=(IMG_WIDTH, IMG_HEIGHT, 3)))
     # 1×30×30×3 => 36×28×28×3 (3×3 Conv2D)
-    model.add(tf.keras.layers.Conv2D(36, (3, 3), activation=relu))
+    model.add(tf.keras.layers.Conv2D(36, (3, 3), activation="relu"))
     # 36×28×28×3 => 36×14×14×3 (2×2 MaxPool2D)
     model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
     # 36×14×14×3 => 21168 (Flatten)
     model.add(tf.keras.layers.Flatten())
-    # 36×14×14×3 => 800 (Linear)
-    model.add(tf.keras.layers.Dense(800, activation=relu))
-    # 800 => 43
-    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation=softmax))
+    # 21168 => 200 (Linear)
+    model.add(tf.keras.layers.Dense(200, activation="relu"))
+    # 200 => 43
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
     # Compilation
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(),
-        loss=tf.keras.losses.categorical_crossentropy,
-        metrics=[tf.keras.metrics.Accuracy()]
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
     )
     return model
 
