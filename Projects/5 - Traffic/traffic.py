@@ -1,7 +1,10 @@
-import cv2
-import numpy as np
 import os
 import sys
+from pathlib import Path
+from typing import List, Tuple
+
+import cv2
+import numpy as np
 import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
@@ -44,7 +47,7 @@ def main():
         print(f"Model saved to {filename}.")
 
 
-def load_data(data_dir):
+def load_data(data_dir: str) -> Tuple[List[np.ndarray], List[int]]:
     """
     Load image data from directory `data_dir`.
 
@@ -58,7 +61,48 @@ def load_data(data_dir):
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
     """
-    raise NotImplementedError
+    data_dir_path = Path(data_dir)
+    images: List[np.ndarray] = []
+    labels: List[int] = []
+
+    for sign_dir_path in data_dir_path.iterdir():
+        print(f"Reading from {sign_dir_path}")
+        sign_id = int(sign_dir_path.name)
+        for sign_img_path in sign_dir_path.iterdir():
+            # Append label
+            labels.append(sign_id)
+            # Load image
+            img: np.ndarray = cv2.imread(str(sign_img_path))
+            # Check dimensions
+            width, height, channel = img.shape
+            # Each pixel must have 3 channels
+            assert channel == 3
+            # Height too big, crop sides
+            if height > IMG_HEIGHT:
+                start = (height - IMG_HEIGHT) // 2
+                end = start+IMG_HEIGHT
+                img = img[:, start:end, :]
+            # Height too small, pad
+            elif height < IMG_HEIGHT:
+                before = (IMG_HEIGHT - height) // 2
+                after = IMG_HEIGHT - height - before
+                img = np.pad(img, [[0, 0], [before, after], [0, 0]])
+            # Width too big, crop sides
+            if width > IMG_WIDTH:
+                start = (width - IMG_WIDTH) // 2
+                end = start + IMG_WIDTH
+                img = img[start:end, :, :]
+            # Width too small, pad
+            elif width < IMG_WIDTH:
+                before = (IMG_WIDTH - width) // 2
+                after = IMG_WIDTH - width - before
+                img = np.pad(img, [[before, after], [0, 0], [0, 0]])
+            # Check shape
+            assert img.shape == (IMG_WIDTH, IMG_HEIGHT, 3)
+            # Append picture
+            images.append(img)
+
+    return images, labels
 
 
 def get_model():
@@ -67,7 +111,46 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
+    # Common activation functions
+    relu = tf.keras.activations.relu
+    softmax = tf.keras.activations.softmax
+    # Common regularizer
+    l2 = tf.keras.regularizers.l2(l2=1e-5)
+    # Sequential model initialization
+    model = tf.keras.models.Sequential()
+    # Input 1×30×30×3
+    model.add(tf.keras.Input(shape=(IMG_WIDTH, IMG_HEIGHT, 3)))
+    # 1×30×30×3 => 16×28×28×3 (3×3 Conv2D)
+    model.add(tf.keras.layers.Conv2D(16, (3, 3), activation=relu))
+    # 16×28×28×3 => 16×14×14×3 (2×2 MaxPool2D)
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
+    # 16×14×14×3 => 36×12×12×3 (3×3 Conv2D)
+    model.add(tf.keras.layers.Conv2D(36, (3, 3), activation=relu))
+    # 36×12×12×3 => 36×6×6×3 (2×2 MaxPool2D)
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
+    # 36×6×6×3 => 3888 (Flatten)
+    model.add(tf.keras.layers.Flatten())
+    # 3888 => 1440 (Linear)
+    model.add(tf.keras.layers.Dense(
+        1440, activation=relu, kernel_regularizer=l2))
+    model.add(tf.keras.layers.Dropout(0.5))
+    # 1440 => 500 (Linear)
+    model.add(tf.keras.layers.Dense(
+        500, activation=relu, kernel_regularizer=l2))
+    model.add(tf.keras.layers.Dropout(0.3))
+    # 500 => 160 (Linear)
+    model.add(tf.keras.layers.Dense(
+        160, activation=relu, kernel_regularizer=l2))
+    model.add(tf.keras.layers.Dropout(0.2))
+    # 160 => 43
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation=softmax))
+    # Compilation
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(),
+        loss=tf.keras.losses.categorical_crossentropy,
+        metrics=[tf.keras.metrics.Accuracy()]
+    )
+    return model
 
 
 if __name__ == "__main__":
