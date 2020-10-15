@@ -105,7 +105,7 @@ def get_model():
     model.add(tf.keras.layers.Flatten())
     # 8748 => 400 (Linear)
     model.add(tf.keras.layers.Dense(
-        400, activation=relu, kernel_regularizer=l2))
+        400, activation=relu))
     model.add(tf.keras.layers.Dropout(0.1))
     # 400 => 43
     model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation=softmax))
