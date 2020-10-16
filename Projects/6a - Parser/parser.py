@@ -91,30 +91,10 @@ def np_chunk(tree: nltk.Tree) -> List[nltk.Tree]:
     whose label is "NP" that does not itself contain any other
     noun phrases as subtrees.
     """
-    np_chunks: List[nltk.Tree] = list(tree.subtrees(is_np_chunk))
+    # No need to check for inclusion because it's impossible in this syntax
+    np_chunks: List[nltk.Tree] = list(
+        tree.subtrees(lambda t: t.label() == "NP"))
     return np_chunks
-
-
-def is_np_chunk(tree: nltk.Tree) -> bool:
-    """
-    Check if tree element is noun phrase chunk
-
-    Args:
-        tree {nltk.Tree}: The subtree about to be checked
-
-    Returns:
-        {bool}: Whether the subtree is `NP` and does not contain another `NP`
-    """
-    # The subtree has to be a `NP`
-    if tree.label() != "NP":
-        return False
-    # It can't have subtree that is `NP`
-    for subtree in tree.subtrees():
-        if subtree == tree:
-            continue
-        if subtree.label() == "NP":
-            return False
-    return True
 
 
 if __name__ == "__main__":
