@@ -3,6 +3,7 @@
 **/Include/
 **/Lib/
 **/Scripts/
+**/nltk_data/
 **/pyvenv.cfg
 Projects/5 - Traffic/gtsrb/
 Projects/6a - Parser/sentences/
