@@ -297,7 +297,7 @@ class MinesweeperAI():
                         if this_count != other_count:
                             raise ValueError(
                                 "Sentences same cells different counts: "
-                                f"{this_cells=} {this_count=} {other_count=}")
+                                f"{this_cells} {this_count} {other_count}")
                         else:
                             # It's possible the `other_sentence` is already
                             #   removed by another check
