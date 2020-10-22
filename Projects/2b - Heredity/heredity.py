@@ -1,7 +1,7 @@
 import csv
 import itertools
 import sys
-from typing import Dict, Literal, Set
+from typing import Dict, Set
 
 PROBS = {
 
@@ -186,7 +186,7 @@ def joint_probability(people: Dict[str, Dict],
     return prod
 
 
-def get_num_genes(person: str, one_gene: Set[str], two_genes: Set[str]) -> Literal[0, 1, 2]:
+def get_num_genes(person: str, one_gene: Set[str], two_genes: Set[str]) -> int:
     """
     Returns the number of bad genes a person has in the scenario
 
@@ -206,7 +206,7 @@ def get_num_genes(person: str, one_gene: Set[str], two_genes: Set[str]) -> Liter
         return 0
 
 
-def get_inherit_gene_prob(parent_num_genes: Literal[0, 1, 2], bad_gene: bool) -> float:
+def get_inherit_gene_prob(parent_num_genes: int, bad_gene: bool) -> float:
     """
     Returns the probability of passing on a good/bad gene
 
