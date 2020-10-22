@@ -1,6 +1,6 @@
 import sys
 from collections import deque
-from typing import Deque, Dict, List, Optional, Set, Tuple
+from typing import Deque, Dict, List, Optional, Tuple
 
 from crossword import *
 
