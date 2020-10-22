@@ -1,6 +1,6 @@
 # import csv
 import sys
-from typing import List, Literal, Tuple
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
