@@ -4,7 +4,7 @@ Tic Tac Toe Player
 
 from math import inf
 from collections import Counter
-from typing import Iterable, List, Literal, Optional, Set, Tuple
+from typing import Iterable, List, Optional, Set, Tuple
 
 X = "X"
 O = "O"
@@ -17,15 +17,15 @@ WINNER_SCORE_MAP = {
 }
 
 # Type hints
-Player = Literal["X", "O"]
+Player = str
 
-Play = Literal["X", "O", None]
+Play = Optional[str]
 Board = List[List[Play]]
 
-Index = Literal[0, 1, 2]
+Index = int
 Coord = Tuple[Index, Index]
 
-Score = Literal[-1, 0, 1]
+Score = int
 
 
 def flattern(board: Board) -> List[Play]:
@@ -90,7 +90,7 @@ def player(board: Board) -> Player:
         return O
     # Invalid board
     else:
-        raise ValueError(f"Invalid board: {board=}")
+        raise ValueError(f"Invalid board: {board}")
 
 
 def actions(board: Board) -> Set[Coord]:
@@ -126,9 +126,9 @@ def result(board: Board, action: Coord) -> Board:
     try:
         cell = board[r][c]
     except IndexError as err:
-        raise IndexError(f"Invalid index: {board=} {action=}") from err
+        raise IndexError(f"Invalid index: {board} {action}") from err
     if not is_empty(cell):
-        raise ValueError(f"Cell occupied: {board=} {action=} {EMPTY=}")
+        raise ValueError(f"Cell occupied: {board} {action} {EMPTY}")
     # Get next player
     next_player = player(board)
     # Copy board
@@ -282,7 +282,7 @@ def minimax_with_score(board: Board) -> Optional[Tuple[Coord, Score]]:
                     min_move = move
                     min_score = score
         return min_move, min_score
-    raise ValueError(f"Invalid player: {board=} {curr_player=}")
+    raise ValueError(f"Invalid player: {board} {curr_player}")
 
 
 def minimax(board: Board) -> Coord:
