@@ -1,8 +1,6 @@
-# import csv
+import csv
 import sys
-from typing import Tuple
 
-import numpy as np
 import pandas as pd
 
 from sklearn.model_selection import train_test_split
@@ -10,8 +8,20 @@ from sklearn.neighbors import KNeighborsClassifier
 
 TEST_SIZE = 0.4
 
-MONTHS_LIST = ["Jan", "Feb", "Mar", "Apr", "May", "June",
-               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+MONTHS_LIST = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "June",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+]
 MONTHS_DICT = {MONTHS_LIST[i]: i for i in range(12)}
 
 
@@ -39,7 +49,7 @@ def main():
     print(f"True Negative Rate: {100 * specificity:.2f}%")
 
 
-def load_data(filename: str) -> Tuple[pd.DataFrame, pd.Series]:
+def load_data(filename):
     """
     Load shopping data from a CSV file `filename` and convert into a list of
     evidence lists and a list of labels. Return a tuple (evidence, labels).
@@ -67,31 +77,35 @@ def load_data(filename: str) -> Tuple[pd.DataFrame, pd.Series]:
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    df = pd.read_csv(filename, header=0, converters={
-        "Administrative": int,
-        "Administrative_Duration": float,
-        "Informational": int,
-        "Informational_Duration": float,
-        "ProductRelated": int,
-        "ProductRelated_Duration": float,
-        "BounceRates": float,
-        "ExitRates": float,
-        "PageValues": float,
-        "SpecialDay": float,
-        "Month": lambda m: MONTHS_DICT[m],
-        "OperatingSystems": int,
-        "Browser": int,
-        "Region": int,
-        "TrafficType": int,
-        "VisitorType": lambda vt: int(vt == "Returning_Visitor"),
-        "Weekend": lambda w: int(w == "TRUE"),
-        "Revenue": lambda r: int(r == "TRUE"),
-    })
+    df = pd.read_csv(
+        filename,
+        header=0,
+        converters={
+            "Administrative": int,
+            "Administrative_Duration": float,
+            "Informational": int,
+            "Informational_Duration": float,
+            "ProductRelated": int,
+            "ProductRelated_Duration": float,
+            "BounceRates": float,
+            "ExitRates": float,
+            "PageValues": float,
+            "SpecialDay": float,
+            "Month": lambda m: MONTHS_DICT[m],
+            "OperatingSystems": int,
+            "Browser": int,
+            "Region": int,
+            "TrafficType": int,
+            "VisitorType": lambda vt: int(vt == "Returning_Visitor"),
+            "Weekend": lambda w: int(w == "TRUE"),
+            "Revenue": lambda r: int(r == "TRUE"),
+        },
+    )
     df_labels = df.pop("Revenue")
     return df, df_labels
 
 
-def train_model(evidences: pd.DataFrame, labels: pd.Series) -> KNeighborsClassifier:
+def train_model(evidences, labels):
     """
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
@@ -101,7 +115,7 @@ def train_model(evidences: pd.DataFrame, labels: pd.Series) -> KNeighborsClassif
     return model
 
 
-def evaluate(labels: pd.Series, predictions: np.ndarray) -> Tuple[float, float]:
+def evaluate(labels, predictions):
     """
     Given a list of actual labels and a list of predicted labels,
     return a tuple (sensitivity, specificty).
@@ -123,9 +137,9 @@ def evaluate(labels: pd.Series, predictions: np.ndarray) -> Tuple[float, float]:
             positive_correct += predictions[i]
             positive_total += 1
         else:
-            negative_correct += 1-predictions[i]
+            negative_correct += 1 - predictions[i]
             negative_total += 1
-    return positive_correct/positive_total, negative_correct/negative_total
+    return positive_correct / positive_total, negative_correct / negative_total
 
 
 if __name__ == "__main__":
