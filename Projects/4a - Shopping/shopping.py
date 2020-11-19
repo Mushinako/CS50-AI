@@ -1,28 +1,10 @@
 import csv
 import sys
 
-import pandas as pd
-
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 
 TEST_SIZE = 0.4
-
-MONTHS_LIST = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "June",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-]
-MONTHS_DICT = {MONTHS_LIST[i]: i for i in range(12)}
 
 
 def main():
@@ -77,41 +59,57 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    df = pd.read_csv(
-        filename,
-        header=0,
-        converters={
-            "Administrative": int,
-            "Administrative_Duration": float,
-            "Informational": int,
-            "Informational_Duration": float,
-            "ProductRelated": int,
-            "ProductRelated_Duration": float,
-            "BounceRates": float,
-            "ExitRates": float,
-            "PageValues": float,
-            "SpecialDay": float,
-            "Month": lambda m: MONTHS_DICT[m],
-            "OperatingSystems": int,
-            "Browser": int,
-            "Region": int,
-            "TrafficType": int,
-            "VisitorType": lambda vt: int(vt == "Returning_Visitor"),
-            "Weekend": lambda w: int(w == "TRUE"),
-            "Revenue": lambda r: int(r == "TRUE"),
-        },
-    )
-    df_labels = df.pop("Revenue")
-    return df, df_labels
+    MONTHS_LIST = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "June",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+    MONTHS_DICT = {MONTHS_LIST[i]: i for i in range(12)}
+    with open(filename, "r") as fp:
+        reader = csv.reader(fp)
+        next(reader)
+        evidences = []
+        labels = []
+        for row in reader:
+            evidence = []
+            evidence.append(int(row[0]))  # Administrative
+            evidence.append(float(row[1]))  # Administrative_Duration
+            evidence.append(int(row[2]))  # Informational
+            evidence.append(float(row[3]))  # Informational_Duration
+            evidence.append(int(row[4]))  # ProductRelated
+            evidence.append(float(row[5]))  # ProductRelated_Duration
+            evidence.append(float(row[6]))  # BounceRates
+            evidence.append(float(row[7]))  # ExitRates
+            evidence.append(float(row[8]))  # PageValues
+            evidence.append(float(row[9]))  # SpecialDay
+            evidence.append(MONTHS_DICT[row[10]])  # Month
+            evidence.append(int(row[11]))  # OperatingSystems
+            evidence.append(int(row[12]))  # Browser
+            evidence.append(int(row[13]))  # Region
+            evidence.append(int(row[14]))  # TrafficType
+            evidence.append(int(row[15] == "Returning_Visitor"))  # VisitorType
+            evidence.append(int(row[16] == "TRUE"))  # Weekend
+            evidences.append(evidence)
+            labels.append(int(row[17] == "TRUE"))  # Revenue
+    return evidences, labels
 
 
-def train_model(evidences, labels):
+def train_model(evidence, labels):
     """
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
     """
     model = KNeighborsClassifier(n_neighbors=3)
-    model.fit(evidences, labels)
+    model.fit(evidence, labels)
     return model
 
 
